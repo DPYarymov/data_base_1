@@ -1,7 +1,6 @@
 import psycopg2
 from psycopg2 import errors
 
-
 db_params = {
     "host": "localhost",
     "database": "postgres",
@@ -14,6 +13,7 @@ conn = None
 cursor = None
 
 try:
+    # создаем БД
     conn = psycopg2.connect(**db_params)
     conn.autocommit = True
 
@@ -27,15 +27,34 @@ try:
     except errors.DuplicateDatabase as e:
         print(f"База данных 'data_base_1' уже существует. Пропускаем создание.")
 
+    db_connect_params = db_params.copy()
+    db_connect_params["database"] = "data_base_1"
+
+    if conn:  # Закрываем старое соединение, если оно было открыто
+        cursor.close()
+        conn.close()
+
+    conn = psycopg2.connect(**db_connect_params)
+    conn.autocommit = True
+    cursor = conn.cursor()
+
+    # Создание таблицы table_1
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS table_1 (
+        id SERIAL PRIMARY KEY,
+        first_name VARCHAR(50) NOT NULL,
+        last_name VARCHAR(50) NOT NULL,
+        password VARCHAR(65) NOT NULL
+    );
+    """
+    cursor.execute(create_table_query)
+    print("Таблица 'table_1' успешно создана (или уже существует).")
+
 
 except psycopg2.Error as e:
-    print(f"Ошибка при работе с PostgreSQL: {e}")
+    print(f"Ошибка при работе с PostgresSQL: {e}")
 
 finally:
     if conn:
-        cursor.close() # Закрываем курсор
-        conn.close()   # Закрываем соединение
-
-
-
-
+        cursor.close()
+        conn.close()
