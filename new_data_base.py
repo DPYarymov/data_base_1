@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import errors
 
 
 db_params = {
@@ -8,26 +9,33 @@ db_params = {
     "password": "123",
     "port": 5432
 }
-print(db_params)
+
+conn = None
+cursor = None
+
 try:
     conn = psycopg2.connect(**db_params)
-    conn.autocommit = True  # Включаем авто-коммит
+    conn.autocommit = True
 
-    # Создаем курсор
     cursor = conn.cursor()
 
-    # SQL-запрос для создания новой базы данных
-    create_db_query = "CREATE DATABASE data_base_1           ;"
+    create_db_query = "CREATE DATABASE data_base_1;"
 
-    # Выполняем запрос
-    cursor.execute(create_db_query)
+    try:
+        cursor.execute(create_db_query)
+        print("База данных 'data_base_1' успешно создана.")
+    except errors.DuplicateDatabase as e:
+        print(f"База данных 'data_base_1' уже существует. Пропускаем создание.")
 
-    print("База данных 'data_base_1' успешно создана.")
 
 except psycopg2.Error as e:
     print(f"Ошибка при работе с PostgreSQL: {e}")
 
-# finally:
-#     if conn:
-#         cursor.close() # Закрываем курсор
-#         conn.close()   # Закрываем соединение
+finally:
+    if conn:
+        cursor.close() # Закрываем курсор
+        conn.close()   # Закрываем соединение
+
+
+
+
