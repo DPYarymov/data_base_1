@@ -42,8 +42,11 @@ try:
     create_table_query = """
     CREATE TABLE IF NOT EXISTS table_1 (
         id SERIAL PRIMARY KEY,
+        uuid DEC(36),
         first_name VARCHAR(50) NOT NULL,
         last_name VARCHAR(50) NOT NULL,
+        description VARCHAR(150),
+        email VARCHAR(50) NOT NULL,
         password VARCHAR(65) NOT NULL
     );
     """
