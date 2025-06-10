@@ -47,7 +47,7 @@ try:
         last_name VARCHAR(50) NOT NULL,
         description VARCHAR(150),
         email VARCHAR(50) NOT NULL,
-        password VARCHAR(65) NOT NULL
+        password VARCHAR(165) NOT NULL
     );
     """
     cursor.execute(create_table_query)

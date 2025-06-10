@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import request
 import psycopg2
+import bcrypt
 from psycopg2 import errors
 
 db_params = {
@@ -15,6 +16,17 @@ db_params = {
 app = Flask(__name__)
 
 
+def hashing_password(password):
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+    return hashed_password
+
+
+def check_password(password, hashed_password):
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password)
+
+
 # Эндпоинт для корневого URL
 @app.route('/create_user', methods=['POST'])
 def add_user():
@@ -23,7 +35,9 @@ def add_user():
     last_name = data.get('user_second_name')
     description = data.get('description')
     email = data.get('email')
-    password = data.get('password')
+    psw = data.get('password')
+
+    hash_password = hashing_password(psw)
 
     conn = None
     cursor = None
@@ -38,7 +52,7 @@ def add_user():
                  (first_name, last_name, description, email, password)
                  VALUES
                  (%s, %s, %s, %s, %s)''',
-                (first_name, last_name, description, email, password))
+                (first_name, last_name, description, email, hash_password))
             conn.commit()
             return f"User has been successfully added"
 
@@ -138,23 +152,6 @@ def del_user():
             cursor.close()
             conn.close()
 
-    # r = request.json
-    #
-    # print(r)
-    # return r
-
-
-# @app.route('/user_list')
-# def home():
-#     user = User("pivasik", "pivasik_2")
-#
-#     return  jsonify([{'user_name': user.name, 'user_second_name': user.second_name }, {'user_name': user.name, 'user_second_name': user.second_name }])
-
-
-# @app.route('/add_user', methods=['POST'])
-# def add_user():
-#     print(request)
-#     return f"Привет, {name}!"
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
