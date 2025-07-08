@@ -1,28 +1,25 @@
 from flask import jsonify
 import requests
 import json
+from accounts.model import User
 
 
-class User():
-    def __init__(self, id, name, second_name, description, email, password):
-        self.id = id
-        self.name = name
-        self.second_name = second_name
-        self.description = description
-        self.email = email
-        self.password = password
-
-    def __str__(self):
-        return f'{self.name} {self.second_name} {self.description} {self.email} {self.password}'
-
-    # def add_db(self, conn):
-    #     pass
+# user_id: Mapped[int] = mapped_column(primary_key=True, index=True)
+#     user_uuid: Mapped[str] = mapped_column(db.UUID(as_uuid=True), default=uuid.uuid4)
+#     first_name: Mapped[str] = mapped_column(String(50))
+#     last_name: Mapped[str] = mapped_column(String(50))
+#     description: Mapped[str] = mapped_column(String(150))
+#     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+#     password: Mapped[str] = mapped_column(String(165), nullable=False)
+#     date_of_create: Mapped[datetime] = mapped_column(default=datetime.now, nullable=False)
+#     is_activ: Mapped[bool] = mapped_column(default=True, nullable=False)
+#     role: Mapped[str] = mapped_column(String(10), default="user", nullable=False)
 
 
 # '''
 # create_user
-user = User(1, 'alko10', 'alko_10', '111', 'alko10@ya.ru', '102345678')
-data = {'user_name': user.name, 'user_second_name': user.second_name, 'description': user.description,
+user = User(None, None, 'alko101', 'alko_102', '111', 'alko101@ya.ru', '102345678', None, None, None)
+data = {'first_name': user.first_name, 'last_name': user.last_name, 'description': user.description,
         'email': user.email, 'password': user.password}
 json_data = json.dumps(data)
 response = requests.post('http://localhost:5000/create_user', data=json_data,
