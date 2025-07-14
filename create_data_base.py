@@ -1,9 +1,6 @@
-from app import db, app
 from sqlalchemy import create_engine
 from accounts.model import Base
 from config import config
-
-# from accounts.model import User
 
 engine = create_engine(config, echo=True)
 

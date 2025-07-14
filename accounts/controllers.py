@@ -1,10 +1,7 @@
-import psycopg2
 import bcrypt
-import uuid
 from flask import request, jsonify
-from app import db
-from model import User
-from psycopg2 import errors
+from accounts.model import User
+from nit import db
 
 
 def hashing_password(password):
@@ -14,26 +11,108 @@ def hashing_password(password):
 
 
 def create_user_controller():
-    request_form = request.form.to_dict()
-    password = hashing_password(request_form['password'])
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
+
+    pwd = str(data.get('password'))
+    password = hashing_password(pwd)
     user = User(
-        first_name=request_form.get('first_name'),
-        last_name=request_form.get('last_name'),
-        description=request_form.get('description'),
-        email=request_form.get('email'),
+        first_name=data.get('first_name'),
+        last_name=data.get('last_name'),
+        description=data.get('description'),
+        email=data.get('email'),
         password=password,
     )
 
-    db.session.add(user)
-    db.session.commit()
+    try:
+        query = db.select(User).where(User.email == user.email)
+        results = db.session.execute(query)
+        if results.one_or_none() is None:
+            db.session.add(user)
+            db.session.commit()
+            return jsonify(user.to_dict()), 201
+        else:
+            return jsonify(f"User with email '{user.email}' already exists"), 200
 
-    response = user, 200
-    return jsonify(response)
-
-# не проверяем, есть ли уже юзер в базе
-# где создаем БД, и табл? (креайт олл)
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)} "}), 500
 
 
+def user_list_controller():
+    try:
+        query = db.select(User)
+        results = db.session.execute(query)
+        users = results.scalars().all()
+        response = []
+        for user in users:
+            response.append(user.to_dict())
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Database error: {str(e)} "}), 500
 
 
+def update_user_controller():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
 
+    user_uuid = data.get('user_uuid')
+    pwd = str(data.get('password'))
+    password = hashing_password(pwd)
+
+    try:
+        query = db.select(User).where(User.user_uuid == user_uuid)
+        results = db.session.execute(query)
+        user = results.scalar_one_or_none()
+        if user is None:
+            return jsonify(f"User with uuid {user_uuid} does not exist"), 404
+        else:
+            user.first_name = data.get('first_name'),
+            user.last_name = data.get('last_name'),
+            user.description = data.get('description'),
+            user.email = data.get('email'),
+            user.password = password,
+            user.role = data.get('role'),
+
+            db.session.commit()
+            return jsonify(f"User with uuid {user_uuid} has been updated"), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)} "}), 500
+
+
+def delete_user_controller():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No JSON data provided"}), 400
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
+
+    user_uuid = data.get('user_uuid')
+
+    try:
+        query = db.select(User).where(User.user_uuid == user_uuid)
+        results = db.session.execute(query)
+        user = results.scalar_one_or_none()
+        if user is None:
+            return jsonify(f"User with uuid {user_uuid} does not exist"), 404
+
+        else:
+            db.session.delete(user)
+            db.session.commit()
+            return jsonify(f"User with uuid {user_uuid} has been deleted"), 204
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)} "}), 500
