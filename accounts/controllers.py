@@ -1,7 +1,8 @@
 import bcrypt
 from flask import request, jsonify
 from accounts.model import User
-from nit import db
+from app import db
+from datetime import datetime, UTC
 
 
 def hashing_password(password):
@@ -17,19 +18,18 @@ def create_user_controller():
             return jsonify({"error": "No JSON data provided"}), 400
     except Exception as e:
         return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
-
-    pwd = str(data.get('password'))
-    password = hashing_password(pwd)
-    user = User(
-        first_name=data.get('first_name'),
-        last_name=data.get('last_name'),
-        description=data.get('description'),
-        email=data.get('email'),
-        password=password,
-    )
-
     try:
-        query = db.select(User).where(User.email == user.email)
+        pwd = str(data.get('password'))
+        password = hashing_password(pwd)
+        user = User(
+            first_name=data.get('first_name'),
+            last_name=data.get('last_name'),
+            description=data.get('description'),
+            email=data.get('email'),
+            password=password,
+        )
+
+        query = db.select(User).where(User.email == user.email, User.is_active == True)
         results = db.session.execute(query)
         if results.one_or_none() is None:
             db.session.add(user)
@@ -65,16 +65,16 @@ def update_user_controller():
     except Exception as e:
         return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
 
-    user_uuid = data.get('user_uuid')
+    uuid = data.get('uuid')
     pwd = str(data.get('password'))
     password = hashing_password(pwd)
 
     try:
-        query = db.select(User).where(User.user_uuid == user_uuid)
+        query = db.select(User).where(User.uuid == uuid, User.is_active == True)
         results = db.session.execute(query)
         user = results.scalar_one_or_none()
         if user is None:
-            return jsonify(f"User with uuid {user_uuid} does not exist"), 404
+            return jsonify(f"User with uuid {uuid} does not exist"), 404
         else:
             user.first_name = data.get('first_name'),
             user.last_name = data.get('last_name'),
@@ -84,7 +84,7 @@ def update_user_controller():
             user.role = data.get('role'),
 
             db.session.commit()
-            return jsonify(f"User with uuid {user_uuid} has been updated"), 200
+            return jsonify(f"User with uuid {uuid} has been updated"), 200
 
     except Exception as e:
         db.session.rollback()
@@ -99,19 +99,21 @@ def delete_user_controller():
     except Exception as e:
         return jsonify({"error": f"Invalid JSON format: {str(e)} "}), 400
 
-    user_uuid = data.get('user_uuid')
+    uuid = data.get('uuid')
 
     try:
-        query = db.select(User).where(User.user_uuid == user_uuid)
+        query = db.select(User).where(User.uuid == uuid, User.is_active == True)
         results = db.session.execute(query)
         user = results.scalar_one_or_none()
+        print(user)
         if user is None:
-            return jsonify(f"User with uuid {user_uuid} does not exist"), 404
+            return jsonify(f"User with uuid {uuid} does not exist"), 404
 
         else:
-            db.session.delete(user)
+            # db.session.delete(user)
+            user.is_active = False
             db.session.commit()
-            return jsonify(f"User with uuid {user_uuid} has been deleted"), 204
+            return jsonify(f"User with uuid {uuid} has been deleted"), 204
 
     except Exception as e:
         db.session.rollback()

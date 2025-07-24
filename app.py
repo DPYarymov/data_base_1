@@ -1,14 +1,14 @@
-from accounts.urls import users
-from nit import create_app
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from config import config
+
+db = SQLAlchemy()
 
 
-app = create_app()
+def create_app():
+    app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = config
 
+    db.init_app(app)
 
-app.register_blueprint(users)
-
-if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)
-
-
-
+    return app
