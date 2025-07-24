@@ -1,9 +1,9 @@
 from accounts.urls import users
 from app import create_app
-import loging
+from logs import loging
+
 
 app = create_app()
-
 
 app.register_blueprint(users)
 

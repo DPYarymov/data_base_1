@@ -7,7 +7,7 @@ logger.setLevel(logging.DEBUG)
 log_format = '%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s'
 
 
-log_file_handler = logging.FileHandler('logs.json', 'w')
+log_file_handler = logging.FileHandler('logs/logs.json', 'w')
 
 formatter = JsonFormatter(log_format)
 
