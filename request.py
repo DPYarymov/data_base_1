@@ -15,10 +15,13 @@ class User():
     def __str__(self):
         return f'{self.name} {self.second_name} {self.description} {self.email} {self.password}'
 
+    # def add_db(self, conn):
+    #     pass
+
 
 # '''
 # create_user
-user = User(1, 'alko', 'alko_2', '111', 'alko@ya.ru', '12345678')
+user = User(1, 'alko10', 'alko_10', '111', 'alko10@ya.ru', '102345678')
 data = {'user_name': user.name, 'user_second_name': user.second_name, 'description': user.description,
         'email': user.email, 'password': user.password}
 json_data = json.dumps(data)
@@ -39,7 +42,7 @@ user = User(1, 'viskarik', 'viskarik_2', '122', 'user2@ya.ru', 'password')
 data = {'id': user.id, 'user_name': user.name, 'user_second_name': user.second_name, 'description': user.description,
         'email': user.email, 'password': user.password}
 json_data = json.dumps(data)
-response = requests.post('http://localhost:5000/update_user', data=json_data, headers={'Content-Type': 'application/json'})
+response = requests.put('http://localhost:5000/update_user', data=json_data, headers={'Content-Type': 'application/json'})
 '''
 
 '''
@@ -49,4 +52,4 @@ json_data = json.dumps(data)
 response = requests.post('http://localhost:5000/delete_user', data=json_data, headers={'Content-Type': 'application/json'})
 '''
 
-# print(response.text)
+print(response.text)
